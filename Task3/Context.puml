@@ -1,0 +1,32 @@
+@startuml
+title Standard Bank Deposit MVP Context Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(NewClient, "New Client", "A potential bank customer using website")
+Person(ExistingClient, "Existing Client", "A bank customer using internet bank")
+Person(CallCenterManager, "Call Center Manager", "Handles deposit requests from website")
+Person(BackOfficeManager, "Deposit Back Office Manager", "Processes deposit applications in MVP")
+
+System(DepositMVP, "Deposit MVP System", "System for deposit applications from website and internet bank")
+
+Container(Website, "Website", "Public website of the bank")
+Container(InternetBank, "Internet Bank", "Internet banking system")
+System_Ext(CallCenterSystem, "Call Center System", "System used by call center operators")
+Container(ABS, "ABS", "Automated banking system")
+Container(SMSGateway, "SMS Gateway", "Gateway for sending SMS notifications")
+
+Rel(NewClient, Website, "Uses")
+Rel(ExistingClient, InternetBank, "Uses")
+Rel(Website, DepositMVP, "Send deposit application")
+Rel(InternetBank, DepositMVP, "Request rates and send deposit application")
+Rel(CallCenterManager, CallCenterSystem, "Uses")
+Rel(CallCenterSystem, DepositMVP, "Read website applications")
+Rel(BackOfficeManager, ABS, "Confirm deposit conditions")
+Rel(DepositMVP, ABS, "Transfer applications and get processing status")
+Rel(DepositMVP, SMSGateway, "Send SMS notifications")
+Rel(DepositMVP, CallCenterSystem, "Transfer website leads")
+
+@enduml
