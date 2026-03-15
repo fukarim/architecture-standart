@@ -1,0 +1,33 @@
+@startuml
+title Standard Bank Deposit Rate Distribution Service Component Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container(PublishedRatesDb, "Published Rates DB", "MS SQL / Oracle", "Stores published rates, versions and publication history")
+Container(ExportStorage, "Export Storage", "File storage", "Stores generated partner export files")
+Container(MessageBroker, "Message Broker", "Kafka", "Publication events for downstream processing")
+
+Container(DepositRateDistributionService, "Deposit Rate Distribution Service", "Java / Spring Boot or .NET", "Publishes rates and distributes them to internal and external channels") {
+  Component(RatesApi, "Rates API", "REST API", "Provides published rates for internal consumers")
+  Component(PublicationController, "Publication Controller", "Application layer", "Handles publication requests and validates input")
+  Component(RatesService, "Rates Service", "Domain service", "Publishes rate versions and manages current published set")
+  Component(PartnerExportProcessor, "Partner Export Processor", "Background worker", "Builds partner export files from published rates")
+  Component(AuditService, "Audit Service", "Application service", "Stores publication and export audit trail")
+  Component(RepositoryLayer, "Repository Layer", "Data access layer", "Reads and writes published rates and metadata")
+}
+
+Rel(RatesApi, RatesService, "Reads published rates")
+Rel(PublicationController, RatesService, "Publishes rates")
+Rel(RatesService, RepositoryLayer, "Reads/Writes rates and versions")
+Rel(RatesService, AuditService, "Writes publication events")
+Rel(RatesService, MessageBroker, "Publishes rate updated event")
+Rel(PartnerExportProcessor, RepositoryLayer, "Reads published rates")
+Rel(PartnerExportProcessor, ExportStorage, "Writes export files")
+Rel(PartnerExportProcessor, AuditService, "Writes export status")
+Rel(AuditService, RepositoryLayer, "Writes audit metadata")
+Rel(RepositoryLayer, PublishedRatesDb, "Reads/Writes rates, versions, audit data")
+Rel(MessageBroker, PartnerExportProcessor, "Triggers export processing")
+
+@enduml
