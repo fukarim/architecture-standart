@@ -1,0 +1,28 @@
+@startuml
+title Standard Bank Deposit Rate Distribution Context Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(DepositBackOffice, "Deposit Back Office Manager", "Publishes deposit rates")
+Person(CallCenterManager, "Call Center Manager", "Consults clients by phone")
+Person(PartnerCallCenterManager, "Partner Call Center Manager", "Consults clients using imported rate file")
+
+System(RateDistribution, "Deposit Rate Distribution", "Publishes current deposit rates for digital channels and call centers")
+
+System_Ext(CallCenterSystem, "Call Center System", "Internal call center platform")
+System_Ext(PartnerCallCenterSystem, "Partner Call Center System", "External system of partner call center")
+Container(Website, "Website", "Public website of the bank")
+Container(InternetBank, "Internet Bank", "Internet banking system")
+
+Rel(DepositBackOffice, RateDistribution, "Manage and publish rates")
+Rel(CallCenterManager, CallCenterSystem, "Uses")
+Rel(PartnerCallCenterManager, PartnerCallCenterSystem, "Uses")
+
+Rel(CallCenterSystem, RateDistribution, "Get published rates")
+Rel(RateDistribution, PartnerCallCenterSystem, "Send rate file")
+Rel(Website, RateDistribution, "Get published rates")
+Rel(InternetBank, RateDistribution, "Get published rates")
+
+@enduml

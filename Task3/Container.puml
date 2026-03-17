@@ -1,0 +1,52 @@
+@startuml
+title Standard Bank Deposit MVP Container Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(NewClient, "New Client", "A potential bank customer using website")
+Person(ExistingClient, "Existing Client", "A bank customer using internet bank")
+Person(CallCenterManager, "Call Center Manager", "Handles deposit requests from website")
+Person(BackOfficeManager, "Deposit Back Office Manager", "Processes deposit applications in MVP")
+
+Container(Website, "Website", "PHP, React", "Public website of the bank")
+Container(InternetBank, "Internet Bank", "ASP.NET MVC 4.5, MS SQL", "Internet banking system")
+System_Ext(CallCenterSystem, "Call Center System", "System used by call center operators")
+Container(ABS, "ABS", "Delphi, Oracle, PL/SQL", "Core banking system")
+System_Ext(SMSGateway, "SMS Gateway", "External gateway for SMS notifications")
+
+Container_Boundary(DepositMVP, "Deposit MVP System") {
+  Container(DepositApi, "Deposit API", "Java Spring Boot", "Handles deposit rates and applications from channels")
+  Container(RateManagementService, "Rate Management Service", "Java Spring Boot", "Manages deposit rates and special conditions")
+  SystemDb(RateDb, "Rates Db", "Stores deposit rates and special conditions")
+  Container(ApplicationService, "Deposit Application Service", "Java Spring Boot", "Stores applications and sends them to processing")
+  SystemDb(ApplicationDb, "Applications Db", "Stores deposit applications and statuses")
+  Container(NotificationService, "Notification Service", "Java Spring Boot", "Sends SMS notifications to clients")
+  SystemQueue(MessageBroker, "Message Broker", "Transfers application and notification events")
+  Container(ABSAdapter, "ABS Adapter", "Java Spring Boot", "Integration layer between Deposit MVP and ABS")
+}
+
+Rel(NewClient, Website, "Uses the system")
+Rel(ExistingClient, InternetBank, "Uses the system")
+Rel(CallCenterManager, CallCenterSystem, "Uses the system")
+Rel(BackOfficeManager, ABS, "Uses the system")
+
+Rel(Website, DepositApi, "Get deposit rates and send application")
+Rel(InternetBank, DepositApi, "Get rates, personalised rates and send application")
+Rel(CallCenterSystem, DepositApi, "Read website applications")
+
+Rel(DepositApi, RateManagementService, "Get actual rates")
+Rel(RateManagementService, RateDb, "Read/Write rates")
+Rel(DepositApi, ApplicationService, "Create deposit application")
+Rel(ApplicationService, ApplicationDb, "Read/Write application data")
+Rel(ApplicationService, MessageBroker, "Send application events")
+Rel(ABSAdapter, MessageBroker, "Handle application events")
+Rel(ABSAdapter, ABS, "Create request for back-office processing and read status")
+Rel(DepositApi, CallCenterSystem, "Transfer website lead")
+Rel(ABS, MessageBroker, "Send deposit status event via adapter")
+Rel(NotificationService, MessageBroker, "Handle notification events")
+Rel(NotificationService, SMSGateway, "Send SMS notifications")
+Rel(ABSAdapter, MessageBroker, "Send status events")
+
+@enduml
